@@ -28,7 +28,7 @@ struct MacScanApp: App {
     @StateObject private var auditor = Auditor()
 
     var body: some Scene {
-        Window("MacScan", id: "main") {
+        WindowGroup("MacScan") {
             ContentView()
                 .environmentObject(auditor)
                 .frame(minWidth: 760, minHeight: 560)
@@ -214,11 +214,12 @@ struct ContentView: View {
             SummaryHeader()
             Divider()
             if auditor.findings.isEmpty && !auditor.isScanning {
-                ContentUnavailableView {
-                    Label("No scan yet", systemImage: "stethoscope")
-                } actions: {
+                VStack(spacing: 12) {
+                    Image(systemName: "stethoscope").font(.system(size: 40)).foregroundStyle(.secondary)
+                    Text("No scan yet").font(.title2.bold())
                     Button("Scan This Mac") { Task { await auditor.scan() } }.buttonStyle(.borderedProminent)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 findingsList
             }

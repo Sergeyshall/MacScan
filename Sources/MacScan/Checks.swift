@@ -50,15 +50,19 @@ private func bullets(_ items: [String], limit: Int = 12) -> String {
 }
 
 private enum Pane {
-    static func open(_ id: String) -> FixAction { .open("x-apple.systempreferences:\(id)") }
-    static let privacy = open("com.apple.settings.PrivacySecurity.extension")
-    static let timeMachine = open("com.apple.Time-Machine-Settings.extension")
-    static let softwareUpdate = open("com.apple.Software-Update-Settings.extension")
-    static let lockScreen = open("com.apple.Lock-Screen-Settings.extension")
-    static let users = open("com.apple.Users-Groups-Settings.extension")
-    static let sharing = open("com.apple.Sharing-Settings.extension")
-    static let loginItems = open("com.apple.LoginItems-Settings.extension")
-    static let airDrop = open("com.apple.AirDrop-Handoff-Settings.extension")
+    /// macOS 13+ System Settings pane, or the macOS 12 System Preferences equivalent.
+    static func open(_ id: String, legacy: String) -> FixAction {
+        let modern = ProcessInfo.processInfo.isOperatingSystemAtLeast(OperatingSystemVersion(majorVersion: 13, minorVersion: 0, patchVersion: 0))
+        return .open("x-apple.systempreferences:\(modern ? id : legacy)")
+    }
+    static let privacy = open("com.apple.settings.PrivacySecurity.extension", legacy: "com.apple.preference.security")
+    static let timeMachine = open("com.apple.Time-Machine-Settings.extension", legacy: "com.apple.prefs.backup")
+    static let softwareUpdate = open("com.apple.Software-Update-Settings.extension", legacy: "com.apple.preferences.softwareupdate")
+    static let lockScreen = open("com.apple.Lock-Screen-Settings.extension", legacy: "com.apple.preference.security?General")
+    static let users = open("com.apple.Users-Groups-Settings.extension", legacy: "com.apple.preferences.users")
+    static let sharing = open("com.apple.Sharing-Settings.extension", legacy: "com.apple.preferences.sharing")
+    static let loginItems = open("com.apple.LoginItems-Settings.extension", legacy: "com.apple.preferences.users")
+    static let airDrop = open("com.apple.AirDrop-Handoff-Settings.extension", legacy: "com.apple.preference.general")
 }
 
 private let socketfilterfw = "/usr/libexec/ApplicationFirewall/socketfilterfw"
@@ -166,7 +170,11 @@ enum Checks {
                                 "Required only after \(seconds / 60) min. Set it to Immediately.",
                                 fix: Fix("Open Settings", Pane.lockScreen))]
             }
-            return [Finding("Password after sleep / screen saver", .ok, "Required immediately")]
+            if out.contains("immediate") || match(#"delay is (\d+) seconds"#, in: out) != nil {
+                return [Finding("Password after sleep / screen saver", .ok, "Required immediately")]
+            }
+            return [Finding("Password after sleep / screen saver", .info, "Couldn't read the setting on this macOS version",
+                            fix: Fix("Open Settings", Pane.lockScreen))]
         },
 
         Check("listeners", .security) {

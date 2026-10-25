@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "MacScan",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS(.v12)],
     targets: [
         .executableTarget(name: "MacScan", path: "Sources/MacScan")
     ]

@@ -11,7 +11,7 @@ rates every item <b>OK / Low / Medium / Critical</b>, and offers a one-click <b>
 - **Read-only by default:** scanning never changes anything. Fixes run only when you click them.
 - **Transparent:** every fix shows the exact command before it runs.
 - **Exportable:** save reports as HTML or Markdown (⌘S / ⇧⌘S), or print one from the command line.
-- **Universal:** runs natively on Apple Silicon and Intel Macs with macOS 14 Sonoma or later.
+- **Universal:** runs natively on Apple Silicon and Intel Macs with macOS 12 Monterey or later.
 
 ## Privacy & safety
 
@@ -54,7 +54,7 @@ MacScan is not notarized by Apple, so macOS blocks it the first time you open it
 
 1. Open MacScan once and dismiss the warning.
 2. Go to **System Settings → Privacy & Security** and click **Open Anyway**.
-   On macOS 14 you can instead right-click the app and choose **Open**.
+   On macOS 12–14 you can instead right-click the app and choose **Open**.
 
 Or remove the quarantine flag in Terminal:
 
