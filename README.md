@@ -87,6 +87,16 @@ Print a report without opening a window, for example from a cron job:
 /Applications/MacScan.app/Contents/MacOS/MacScan --report --html > report.html
 ```
 
+## Releasing
+
+Pushing a version tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml). The workflow builds
+the universal app on a GitHub macOS runner with its version taken from the tag, checks both architectures and the
+signature, and publishes a GitHub Release with `MacScan.zip`, its SHA-256 checksum, and generated notes.
+
+```sh
+git tag v1.1 && git push origin v1.1
+```
+
 ## Project layout
 
 ```

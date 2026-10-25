@@ -1,0 +1,49 @@
+name: Release
+
+# Push a version tag to publish a release:
+#   git tag v1.1 && git push origin v1.1
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: swift --version
+
+      - name: Build universal app
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}" BUILD_NUMBER="${{ github.run_number }}" ./build.sh --zip
+          cd build && shasum -a 256 MacScan.zip > MacScan.zip.sha256
+
+      - name: Verify
+        run: |
+          APP=build/MacScan.app
+          lipo -archs "$APP/Contents/MacOS/MacScan" | grep -q arm64
+          lipo -archs "$APP/Contents/MacOS/MacScan" | grep -q x86_64
+          codesign --verify --deep --strict "$APP"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Contents/Info.plist"
+          cat build/MacScan.zip.sha256
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > notes.md <<'NOTES'
+          Universal app for Apple Silicon and Intel Macs, macOS 14 Sonoma or later.
+
+          **Install:** unzip, move **MacScan.app** to Applications, and open it. MacScan isn't notarized,
+          so the first time go to **System Settings → Privacy & Security → Open Anyway**,
+          or run `xattr -dr com.apple.quarantine /Applications/MacScan.app`.
+
+          Verify the download with `shasum -a 256 -c MacScan.zip.sha256`.
+          NOTES
+          gh release create "$GITHUB_REF_NAME" build/MacScan.zip build/MacScan.zip.sha256 \
+            --title "MacScan ${GITHUB_REF_NAME#v}" --notes-file notes.md --generate-notes --verify-tag
